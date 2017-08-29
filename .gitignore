@@ -6,7 +6,8 @@
 /Assets/Standar*
 /Assets/Easy*
 /Assets/Movinar*
-
+!/Assets/Standard Assets/Characters/ThirdPersonCharacter/Scripts/ThirdPersonCharacter.cs
+!/Assets/Standard Assets/Characters/ThirdPersonCharacter/Scripts/ThirdPersonCharacter.cs.meta
 
 # Visual Studio 2015 cache directory
 /.vs/
