@@ -4,9 +4,9 @@
 /[Bb]uild/
 /[Bb]uilds/
 /Assets/Standar*
-/Assets/Editor*
 /Assets/Easy*
 /Assets/Movinar*
+
 
 # Visual Studio 2015 cache directory
 /.vs/

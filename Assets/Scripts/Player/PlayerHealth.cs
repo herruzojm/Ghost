@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using Scripts.Wall;
 
 namespace Scripts.Player
 {
@@ -15,8 +16,10 @@ namespace Scripts.Player
                
         bool isDead;                                                    // Whether the player is dead.
         bool damaged;                                                   // True when the player gets damaged.
-        bool possessing;                                                 // True when the player posses another character.
+        bool possessing;                                                // True when the player posses another character.
 
+        IEnumerator resistanceCoroutine = null;
+        IEnumerator regenerateCoroutine = null;
 
         void Awake ()
         {     
@@ -24,14 +27,16 @@ namespace Scripts.Player
             currentHealth = startingHealth;
 
             // Start coroutine to regenerate player's health
-            StartCoroutine(RenerateHealth());
+            regenerateCoroutine = RenerateHealth();
+            StartCoroutine(regenerateCoroutine);
         }
 
         IEnumerator RenerateHealth() {
-            while (true) {
+            while (true)
+            {
                 if (currentHealth < maxHealth)
                 {
-                    //Debug.Log("Previous health: " + currentHealth.ToString() + "; new health: " + (currentHealth + healthRegeneration).ToString());
+                    //Debug.Log("Healing. Previous health: " + currentHealth.ToString() + "; new health: " + (currentHealth + healthRegeneration).ToString());
                     // Regenerate health
                     currentHealth += healthRegeneration;
 
@@ -54,25 +59,51 @@ namespace Scripts.Player
             }
         }
 
-        void Update ()
+        IEnumerator TakeDamage(float damage, float time)
         {
-            // If the player has just been damaged...
-            if(damaged || possessing)
+            while (true)
             {
-                // loses health
+                Debug.Log("Taking damage. Previous health: " + currentHealth.ToString() + "; new health: " + (currentHealth - damage).ToString());
+                damaged = true;
+                currentHealth -= damage;
+                if (currentHealth < 0)
+                {
+                    currentHealth = 0;
+                }
+                yield return new WaitForSeconds(time);
             }
         }
 
-
-        public void TakeDamage (int amount)
+        void OnTriggerStay(Collider other)
         {
-            // Set the damaged flag so the screen will flash.
-            damaged = true;
+            if (!isDead && currentHealth > 0)
+            {
+                if (other.tag == "Wall")
+                {
+                    if (resistanceCoroutine == null)
+                    {
+                        Resistance resistance = other.GetComponent<Resistance>();
+                        resistanceCoroutine = TakeDamage(resistance.Damage, resistance.TimeInterval);
+                        StartCoroutine(resistanceCoroutine);
+                    }                    
+                }
+                
+            }
 
-            // Reduce the current health by the damage amount.
-            currentHealth -= amount;                        
+            //Show new health value
+            UpdateHealth();
         }
 
+        void OnTriggerExit(Collider other)
+        {
+            if (resistanceCoroutine != null)
+            {
+                StopCoroutine(resistanceCoroutine);
+            }            
+            resistanceCoroutine = null;
+            damaged = false;
+        }
+        
 
         private void UpdateHealth() {
             // Set the health bar's value to the current health.
@@ -88,7 +119,19 @@ namespace Scripts.Player
 
         void Death ()
         {
-
+            isDead = true;
+            StopCoroutine(regenerateCoroutine);
+            if (resistanceCoroutine != null)
+            {
+                StopCoroutine(resistanceCoroutine);
+            }
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#elif UNITY_WEBPLAYER
+         Application.OpenURL(webplayerQuitURL);
+#else
+         Application.Quit();
+#endif
         }
 
 
