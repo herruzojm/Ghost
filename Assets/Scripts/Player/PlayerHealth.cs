@@ -69,18 +69,27 @@ namespace Scripts.Player
             }
         }
 
+        // Takes damage over time for walking through walls
         IEnumerator TakeDamage(float damage, float time)
         {
             while (true)
             {
-                Debug.Log("Taking damage. Previous health: " + currentHealth.ToString() + "; new health: " + (currentHealth - damage).ToString());
-                damaged = true;
-                currentHealth -= damage;
-                if (currentHealth < 0)
-                {
-                    currentHealth = 0;
-                }
+                //Debug.Log("Taking damage. Previous health: " + currentHealth.ToString() + "; new health: " + (currentHealth - damage).ToString());
+                damaged = true;                
+                TakeDamage(damage);
+                //Show new health value
+                UpdateHealth();
                 yield return new WaitForSeconds(time);
+            }
+        }
+
+        // Takaes damage just once, like a shoot
+        public void TakeDamage(float damage)
+        {
+            currentHealth -= damage;
+            if (currentHealth < 0)
+            {
+                currentHealth = 0;
             }
         }
 
